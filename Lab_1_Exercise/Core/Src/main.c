@@ -47,6 +47,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -84,16 +85,101 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  int counter1 = 5;   // đếm cho đèn 1
+  int counter2 = 3;   // đếm cho đèn 2
+  int state = 0;
   while (1)
   {
     /* USER CODE END WHILE */
+	  switch (state){
+	            case 0: // Đèn 1: ĐỎ (5s) + Đèn 2: XANH (3s)
+	                // Đèn 1: ĐỎ
+	                HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);   // RED sáng
+	                HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET); // GREEN tắt
+	                HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET); // YELLOW tắt
+	                // Đèn 2: XANH
+	                HAL_GPIO_WritePin(LED_RED_1_GPIO_Port, LED_RED_1_Pin, GPIO_PIN_RESET);   // RED tắt
+	                HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_SET); // GREEN sáng
+	                HAL_GPIO_WritePin(LED_YELLOW_1_GPIO_Port, LED_YELLOW_1_Pin, GPIO_PIN_RESET); // YELLOW tắt
+	                break;
 
+	            case 1: // Đèn 1: ĐỎ (2s) + Đèn 2: VÀNG (2s)
+	                // Đèn 1: ĐỎ
+	                HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);   // RED sáng
+	                HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET); // GREEN tắt
+	                HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET); // YELLOW tắt
+	                // Đèn 2: VÀNG
+	                HAL_GPIO_WritePin(LED_RED_1_GPIO_Port, LED_RED_1_Pin, GPIO_PIN_RESET);   // RED tắt
+	                HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_RESET);   // GREEN tắt
+	                HAL_GPIO_WritePin(LED_YELLOW_1_GPIO_Port, LED_YELLOW_1_Pin, GPIO_PIN_SET); // YELLOW sáng
+	                break;
+
+	            case 2: // Đèn 1: XANH (3s) + Đèn 2: ĐỎ (5s)
+	                // Đèn 1: XANH
+	                HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);   // RED tắt
+	                HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_SET); // GREEN sáng
+	                HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET); // YELLOW tắt
+	                // Đèn 2: ĐỎ
+	                HAL_GPIO_WritePin(LED_RED_1_GPIO_Port, LED_RED_1_Pin, GPIO_PIN_SET);   // RED sáng
+	                HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_RESET); // GREEN tắt
+	                HAL_GPIO_WritePin(LED_YELLOW_1_GPIO_Port, LED_YELLOW_1_Pin, GPIO_PIN_RESET); // YELLOW tắt
+	                break;
+
+	            case 3: // Đèn 1: VÀNG (2s) + Đèn 2: ĐỎ (2s)
+	                // Đèn 1: VÀNG
+	                HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);   // RED tắt
+	                HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);   // GREEN tắt
+	                HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_SET); // YELLOW sáng
+	                // Đèn 2: ĐỎ
+	                HAL_GPIO_WritePin(LED_RED_1_GPIO_Port, LED_RED_1_Pin, GPIO_PIN_SET);   // RED sáng
+	                HAL_GPIO_WritePin(LED_GREEN_1_GPIO_Port, LED_GREEN_1_Pin, GPIO_PIN_RESET); // GREEN tắt
+	                HAL_GPIO_WritePin(LED_YELLOW_1_GPIO_Port, LED_YELLOW_1_Pin, GPIO_PIN_RESET); // YELLOW tắt
+	                break;
+	        }
+
+	        // Logic chuyển trạng thái TRƯỚC KHI giảm counter
+	        if (state == 0 && counter2 == 1){
+	            // Đèn 2 sắp hết xanh -> chuyển sang vàng
+	            state = 1;
+	            counter1--;  // giảm counter1
+	            counter2 = 2;  // reset counter2 cho vàng
+	        }
+	        else if (state == 1 && counter1 == 1 && counter2 == 1){
+	            // Đèn 1 và đèn 2 sắp hết -> chuyển trạng thái mới
+	            state = 2;
+	            counter1 = 3;  // đèn 1 xanh 3s
+	            counter2 = 5;  // đèn 2 đỏ 5s
+	        }
+	        else if (state == 2 && counter1 == 1){
+	            // Đèn 1 sắp hết xanh -> chuyển sang vàng
+	            state = 3;
+	            counter1 = 2;  // reset counter1 cho vàng
+	            counter2--;  // giảm counter2
+	        }
+	        else if (state == 3 && counter1 == 1 && counter2 == 1){
+	            // Đèn 1 và đèn 2 sắp hết -> quay lại ban đầu
+	            state = 0;
+	            counter1 = 5;  // đèn 1 đỏ 5s
+	            counter2 = 3;  // đèn 2 xanh 3s
+	        }
+	        else {
+	            // Giảm counter bình thường
+	            counter1--;
+	            counter2--;
+	        }
+
+	        // Đảm bảo counter không bao giờ âm
+	        if (counter1 < 0) counter1 = 0;
+	        if (counter2 < 0) counter2 = 0;
+
+	        HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -133,6 +219,39 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, LED_RED_Pin|LED_YELLOW_Pin|LED_GREEN_Pin|LED_RED_1_Pin
+                          |LED_YELLOW_1_Pin|LED_GREEN_1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : LED_RED_Pin LED_YELLOW_Pin LED_GREEN_Pin LED_RED_1_Pin
+                           LED_YELLOW_1_Pin LED_GREEN_1_Pin */
+  GPIO_InitStruct.Pin = LED_RED_Pin|LED_YELLOW_Pin|LED_GREEN_Pin|LED_RED_1_Pin
+                          |LED_YELLOW_1_Pin|LED_GREEN_1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
