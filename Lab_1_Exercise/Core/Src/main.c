@@ -47,6 +47,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -60,6 +61,21 @@ void SystemClock_Config(void);
   * @brief  The application entry point.
   * @retval int
   */
+void clearAllClock(){
+    for(int i = 4; i <= 15; i++){
+        GPIOA->BSRR = (1U << (i + 16));
+    }
+}
+void setNumberOnClock(int num){
+	if (num < 0 || num > 11) return;
+	int pin = 4 + num;
+	GPIOA->BSRR = (1U << pin);
+}
+void clearNumberOnClock(int num){
+	if (num < 0 || num > 11) return;
+	int pin = 4 + num +16;
+	GPIOA->BSRR = (1U << pin);
+}
 int main(void)
 {
 
@@ -84,16 +100,36 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  int hour = 0, minute = 0, second = 0;
   while (1)
   {
     /* USER CODE END WHILE */
+	  clearAllClock();
+	     int led_hour = hour % 12;
+	     int led_minute = minute / 5;
+	     int led_second = second / 5;
 
+	     setNumberOnClock(led_hour);
+	     setNumberOnClock(led_minute);
+	     setNumberOnClock(led_second);
+	     HAL_Delay(5);
+	     second++;
+	     if (second >= 60) {
+	         second = 0;
+	         minute++;
+	         if (minute >= 60) {
+	             minute = 0;
+	             hour++;
+	             if (hour >= 24) hour = 0;
+	         }
+	     }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -133,6 +169,42 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7
+                          |GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
+                          |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : PA4 PA5 PA6 PA7
+                           PA8 PA9 PA10 PA11
+                           PA12 PA13 PA14 PA15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7
+                          |GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
+                          |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
